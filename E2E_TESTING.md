@@ -1,6 +1,6 @@
 # End-to-End Testing Guide
 
-This guide explains how to run the end-to-end (e2e) tests for The Range Marketplace Python SDK, including order event and order feed functionality.
+This guide explains how to run the end-to-end (e2e) tests for The Range Marketplace Python SDK, including order event, order feed, and stock availability functionality.
 
 ## Overview
 
@@ -46,14 +46,24 @@ python -m pytest tests/test_order_event_e2e.py -v
 python -m pytest tests/test_order_feed_e2e.py -v
 ```
 
+#### Stock Availability Tests
+```bash
+python -m pytest tests/test_stock_availability_e2e.py -v
+```
+
 #### All E2E Tests
 ```bash
-python -m pytest tests/test_order_event_e2e.py tests/test_order_feed_e2e.py -v
+# Run all e2e tests
+python -m pytest tests/test_*_e2e.py -v
+
+# Or run specific combinations
+python -m pytest tests/test_order_event_e2e.py tests/test_order_feed_e2e.py tests/test_stock_availability_e2e.py -v
 ```
 
 ### Run Specific E2E Tests
 
 #### Order Event Tests
+
 ```bash
 # Test authentication only
 python -m pytest tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_authentication_e2e -v
@@ -86,6 +96,22 @@ python -m pytest tests/test_order_feed_e2e.py::TestOrderFeedClientE2E::test_get_
 python -m pytest tests/test_order_feed_e2e.py::TestOrderFeedE2EIntegration::test_multiple_order_types_comparison_e2e -v
 ```
 
+#### Stock Availability Tests
+
+```bash
+# Test authentication only
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_authentication_e2e -v
+
+# Test stock update functionality
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_update_stock_e2e -v
+
+# Test single item stock update
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_update_stock_single_item_e2e -v
+
+# Test multiple stock updates
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityE2EIntegration::test_multiple_stock_updates_e2e -v
+```
+
 ### Run with Verbose Output
 
 To see detailed output and API responses:
@@ -97,8 +123,11 @@ python -m pytest tests/test_order_event_e2e.py -v -s
 # Order Feed Tests
 python -m pytest tests/test_order_feed_e2e.py -v -s
 
-# All E2E Tests
-python -m pytest tests/test_order_event_e2e.py tests/test_order_feed_e2e.py -v -s
+# Stock availability tests with verbose output
+python -m pytest tests/test_stock_availability_e2e.py -v -s
+
+# All e2e tests with verbose output
+python -m pytest tests/test_*_e2e.py -v -s
 ```
 
 ## Test Coverage
@@ -111,6 +140,7 @@ The e2e tests cover the following scenarios:
 - **Dispatch Order**: Tests order dispatch with complete payload including optional delivery dates
 - **Cancel Order**: Tests order cancellation with various cancellation codes
 - **Send Event**: Tests custom event sending functionality
+- **Stock Update**: Tests stock availability updates with various scenarios (single item, multiple items, zero quantities)
 
 ### Order Feed Functionality Tests
 - **Network Connectivity**: Verifies connection to the UAT API
@@ -129,6 +159,8 @@ The e2e tests cover the following scenarios:
 - **Full Order Lifecycle**: Tests dispatch followed by cancellation of the same order (Order Event)
 - **Multiple Order Types Comparison**: Tests retrieving and comparing different order types (Order Feed)
 - **Date Range Boundary**: Tests maximum allowed date range (35 days) for order feed queries
+- **Multiple Stock Updates**: Tests sequential stock updates with different product codes and quantities
+- **Large Dataset Stock Updates**: Tests stock updates with larger datasets (50+ items)
 
 ## Test Behavior
 
@@ -142,6 +174,7 @@ If the test environment cannot reach the UAT API (network connectivity issues), 
 - All tests use uniquely generated test data to avoid conflicts
 - Order numbers include timestamps (e.g., `E2E_TEST_20231201143045`)
 - Product codes are prefixed with `E2E_` for easy identification
+- Stock availability test data uses patterns like `E2E_STOCK_TEST_20231201143045_001`
 - Tests are designed to be safe to run multiple times
 - Order feed tests work with existing data in the UAT environment and don't create new test orders
 
@@ -153,15 +186,26 @@ export THERANGE_USERNAME=test_supplier_001
 export THERANGE_PASSWORD=test_password_123
 
 # Run all e2e tests
-python -m pytest tests/test_order_event_e2e.py tests/test_order_feed_e2e.py -v
+python -m pytest tests/test_*_e2e.py -v
 
-# Expected output:
+# Or run specific test suites
+python -m pytest tests/test_order_event_e2e.py -v
+python -m pytest tests/test_order_feed_e2e.py -v
+python -m pytest tests/test_stock_availability_e2e.py -v
+
+# Expected output for order event tests:
 # tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_network_connectivity_e2e PASSED
 # tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_authentication_e2e PASSED
 # tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_dispatch_order_e2e PASSED
 # tests/test_order_feed_e2e.py::TestOrderFeedClientE2E::test_network_connectivity_e2e PASSED
 # tests/test_order_feed_e2e.py::TestOrderFeedClientE2E::test_authentication_e2e PASSED
 # tests/test_order_feed_e2e.py::TestOrderFeedClientE2E::test_get_orders_all_e2e PASSED
+# ... etc
+
+# Expected output for stock availability tests:
+# tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_network_connectivity_e2e PASSED
+# tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_authentication_e2e PASSED
+# tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_update_stock_e2e PASSED
 # ... etc
 ```
 
@@ -194,7 +238,13 @@ To integrate these tests into your CI/CD pipeline:
     THERANGE_USERNAME: ${{ secrets.THERANGE_UAT_USERNAME }}
     THERANGE_PASSWORD: ${{ secrets.THERANGE_UAT_PASSWORD }}
   run: |
-    python -m pytest tests/test_order_event_e2e.py tests/test_order_feed_e2e.py -v
+    # Run all e2e tests
+    python -m pytest tests/test_*_e2e.py -v
+    
+    # Or run specific test suites
+    # python -m pytest tests/test_order_event_e2e.py -v
+    # python -m pytest tests/test_order_feed_e2e.py -v
+    # python -m pytest tests/test_stock_availability_e2e.py -v
 ```
 
 ## Security Notes
@@ -209,7 +259,7 @@ To integrate these tests into your CI/CD pipeline:
 
 To add new e2e tests:
 
-1. Follow the existing pattern in `test_order_event_e2e.py`
+1. Follow the existing pattern in `test_order_event_e2e.py`, `test_order_feed_e2e.py`, or `test_stock_availability_e2e.py`
 2. Use the `@pytest.mark.skipif` decorator with credential checks
 3. Add network error handling with try/catch blocks
 4. Generate unique test data using timestamps
