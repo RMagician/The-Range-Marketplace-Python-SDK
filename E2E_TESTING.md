@@ -37,10 +37,19 @@ pip install pytest
 ### Run All E2E Tests
 
 ```bash
+# Run all order event e2e tests
 python -m pytest tests/test_order_event_e2e.py -v
+
+# Run all stock availability e2e tests
+python -m pytest tests/test_stock_availability_e2e.py -v
+
+# Run all e2e tests
+python -m pytest tests/test_*_e2e.py -v
 ```
 
 ### Run Specific E2E Tests
+
+#### Order Event Tests
 
 ```bash
 # Test authentication only
@@ -56,12 +65,35 @@ python -m pytest tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_ca
 python -m pytest tests/test_order_event_e2e.py::TestOrderEventE2EIntegration::test_full_order_lifecycle_e2e -v
 ```
 
+#### Stock Availability Tests
+
+```bash
+# Test authentication only
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_authentication_e2e -v
+
+# Test stock update functionality
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_update_stock_e2e -v
+
+# Test single item stock update
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_update_stock_single_item_e2e -v
+
+# Test multiple stock updates
+python -m pytest tests/test_stock_availability_e2e.py::TestStockAvailabilityE2EIntegration::test_multiple_stock_updates_e2e -v
+```
+
 ### Run with Verbose Output
 
 To see detailed output and API responses:
 
 ```bash
+# Order event tests with verbose output
 python -m pytest tests/test_order_event_e2e.py -v -s
+
+# Stock availability tests with verbose output
+python -m pytest tests/test_stock_availability_e2e.py -v -s
+
+# All e2e tests with verbose output
+python -m pytest tests/test_*_e2e.py -v -s
 ```
 
 ## Test Coverage
@@ -74,6 +106,7 @@ The e2e tests cover the following scenarios:
 - **Dispatch Order**: Tests order dispatch with complete payload including optional delivery dates
 - **Cancel Order**: Tests order cancellation with various cancellation codes
 - **Send Event**: Tests custom event sending functionality
+- **Stock Update**: Tests stock availability updates with various scenarios (single item, multiple items, zero quantities)
 
 ### Error Handling Tests
 - **Authentication Errors**: Tests handling of invalid credentials
@@ -81,6 +114,8 @@ The e2e tests cover the following scenarios:
 
 ### Integration Tests
 - **Full Order Lifecycle**: Tests dispatch followed by cancellation of the same order
+- **Multiple Stock Updates**: Tests sequential stock updates with different product codes and quantities
+- **Large Dataset Stock Updates**: Tests stock updates with larger datasets (50+ items)
 
 ## Test Behavior
 
@@ -94,6 +129,7 @@ If the test environment cannot reach the UAT API (network connectivity issues), 
 - All tests use uniquely generated test data to avoid conflicts
 - Order numbers include timestamps (e.g., `E2E_TEST_20231201143045`)
 - Product codes are prefixed with `E2E_` for easy identification
+- Stock availability test data uses patterns like `E2E_STOCK_TEST_20231201143045_001`
 - Tests are designed to be safe to run multiple times
 
 ## Example Usage
@@ -104,12 +140,22 @@ export THERANGE_USERNAME=test_supplier_001
 export THERANGE_PASSWORD=test_password_123
 
 # Run all e2e tests
-python -m pytest tests/test_order_event_e2e.py -v
+python -m pytest tests/test_*_e2e.py -v
 
-# Expected output:
+# Or run specific test suites
+python -m pytest tests/test_order_event_e2e.py -v
+python -m pytest tests/test_stock_availability_e2e.py -v
+
+# Expected output for order event tests:
 # tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_network_connectivity_e2e PASSED
 # tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_authentication_e2e PASSED
 # tests/test_order_event_e2e.py::TestOrderEventClientE2E::test_dispatch_order_e2e PASSED
+# ... etc
+
+# Expected output for stock availability tests:
+# tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_network_connectivity_e2e PASSED
+# tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_authentication_e2e PASSED
+# tests/test_stock_availability_e2e.py::TestStockAvailabilityClientE2E::test_update_stock_e2e PASSED
 # ... etc
 ```
 
@@ -142,7 +188,12 @@ To integrate these tests into your CI/CD pipeline:
     THERANGE_USERNAME: ${{ secrets.THERANGE_UAT_USERNAME }}
     THERANGE_PASSWORD: ${{ secrets.THERANGE_UAT_PASSWORD }}
   run: |
-    python -m pytest tests/test_order_event_e2e.py -v
+    # Run all e2e tests
+    python -m pytest tests/test_*_e2e.py -v
+    
+    # Or run specific test suites
+    # python -m pytest tests/test_order_event_e2e.py -v
+    # python -m pytest tests/test_stock_availability_e2e.py -v
 ```
 
 ## Security Notes
