@@ -6,6 +6,6 @@ setup(
     description="Modular Python SDK for The Range Marketplace API",
     author="Your Name",
     packages=find_packages(),
-    install_requires=["requests"],
+    install_requires=["requests", "pydantic"],
     python_requires=">=3.7",
 )
