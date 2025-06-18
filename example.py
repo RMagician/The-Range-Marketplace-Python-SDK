@@ -1,11 +1,12 @@
-from therange import TheRangeManager
+from therange import TheRangeManager, Config
 from therange.product_feed import (
     ProductFeedRequest, ProductEntry, PriceEntry, ProductAttribute,
     PriceAmendmentRequest, PriceAmendmentEntry
 )
 from datetime import date
 
-api = TheRangeManager("your_username", "your_password", test=True)
+config = Config.uat()
+api = TheRangeManager("your_username", "your_password", config)
 api.authenticate()
 
 # Example: Get orders (basic - all orders)

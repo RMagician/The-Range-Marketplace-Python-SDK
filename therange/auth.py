@@ -1,30 +1,20 @@
 import requests
 from http.cookies import SimpleCookie
-from typing import Optional
 from .config import Config
 
 class AuthClient:
-    def __init__(self, username, password, test=False, config: Optional[Config] = None):
+    def __init__(self, username, password, config: Config):
         """
         Initialize AuthClient.
         
         Args:
             username: The username for authentication
             password: The password for authentication
-            test: Legacy parameter for backward compatibility. If True, uses UAT environment.
-                  Ignored if config is provided.
-            config: Configuration object. If not provided, uses production or UAT based on test parameter.
+            config: Configuration object specifying the environment to use
         """
         self.username = username
         self.password = password
-        
-        # Handle configuration with backward compatibility
-        if config is not None:
-            self.config = config
-            self.test = config.is_test_environment
-        else:
-            self.test = test
-            self.config = Config.uat() if test else Config.production()
+        self.config = config
         
         self.session = requests.Session()
         self.mode = None

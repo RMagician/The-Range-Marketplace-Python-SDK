@@ -117,55 +117,26 @@ class TestAuthClientWithConfig:
     def test_auth_client_with_production_config(self):
         """Test AuthClient with production config."""
         config = Config.production()
-        auth = AuthClient("user", "pass", config=config)
+        auth = AuthClient("user", "pass", config)
         
         assert auth.config == config
         assert auth.base_url == "https://supplier.rstore.com/rest/"
-        assert not auth.test
     
     def test_auth_client_with_uat_config(self):
         """Test AuthClient with UAT config."""
         config = Config.uat()
-        auth = AuthClient("user", "pass", config=config)
+        auth = AuthClient("user", "pass", config)
         
         assert auth.config == config
         assert auth.base_url == "https://uatsupplier.rstore.com/rest/"
-        assert auth.test
     
     def test_auth_client_with_custom_config(self):
         """Test AuthClient with custom config."""
         config = Config.custom("https://custom.api.com/rest", "staging")
-        auth = AuthClient("user", "pass", config=config)
+        auth = AuthClient("user", "pass", config)
         
         assert auth.config == config
         assert auth.base_url == "https://custom.api.com/rest/"
-        assert not auth.test  # Custom environments are not considered test unless named "uat"
-    
-    def test_auth_client_backward_compatibility_production(self):
-        """Test backward compatibility with test=False."""
-        auth = AuthClient("user", "pass", test=False)
-        
-        assert auth.base_url == "https://supplier.rstore.com/rest/"
-        assert not auth.test
-        assert auth.config.environment == Config.PRODUCTION
-    
-    def test_auth_client_backward_compatibility_uat(self):
-        """Test backward compatibility with test=True."""
-        auth = AuthClient("user", "pass", test=True)
-        
-        assert auth.base_url == "https://uatsupplier.rstore.com/rest/"
-        assert auth.test
-        assert auth.config.environment == Config.UAT
-    
-    def test_auth_client_config_overrides_test_parameter(self):
-        """Test that config parameter overrides test parameter."""
-        # Even with test=True, if we provide production config, it should use production
-        config = Config.production()
-        auth = AuthClient("user", "pass", test=True, config=config)
-        
-        assert auth.config == config
-        assert auth.base_url == "https://supplier.rstore.com/rest/"
-        assert not auth.test  # Should be False because production config is not test environment
 
 
 class TestTheRangeManagerWithConfig:
@@ -174,54 +145,26 @@ class TestTheRangeManagerWithConfig:
     def test_manager_with_production_config(self):
         """Test TheRangeManager with production config."""
         config = Config.production()
-        manager = TheRangeManager("user", "pass", config=config)
+        manager = TheRangeManager("user", "pass", config)
         
         assert manager.auth.config == config
         assert manager.auth.base_url == "https://supplier.rstore.com/rest/"
-        assert not manager.auth.test
     
     def test_manager_with_uat_config(self):
         """Test TheRangeManager with UAT config."""
         config = Config.uat()
-        manager = TheRangeManager("user", "pass", config=config)
+        manager = TheRangeManager("user", "pass", config)
         
         assert manager.auth.config == config
         assert manager.auth.base_url == "https://uatsupplier.rstore.com/rest/"
-        assert manager.auth.test
     
     def test_manager_with_custom_config(self):
         """Test TheRangeManager with custom config."""
         config = Config.custom("https://staging.api.com/rest", "staging")
-        manager = TheRangeManager("user", "pass", config=config)
+        manager = TheRangeManager("user", "pass", config)
         
         assert manager.auth.config == config
         assert manager.auth.base_url == "https://staging.api.com/rest/"
-        assert not manager.auth.test
-    
-    def test_manager_backward_compatibility_production(self):
-        """Test backward compatibility with test=False."""
-        manager = TheRangeManager("user", "pass", test=False)
-        
-        assert manager.auth.base_url == "https://supplier.rstore.com/rest/"
-        assert not manager.auth.test
-        assert manager.auth.config.environment == Config.PRODUCTION
-    
-    def test_manager_backward_compatibility_uat(self):
-        """Test backward compatibility with test=True."""
-        manager = TheRangeManager("user", "pass", test=True)
-        
-        assert manager.auth.base_url == "https://uatsupplier.rstore.com/rest/"
-        assert manager.auth.test
-        assert manager.auth.config.environment == Config.UAT
-    
-    def test_manager_config_overrides_test_parameter(self):
-        """Test that config parameter overrides test parameter."""
-        config = Config.production()
-        manager = TheRangeManager("user", "pass", test=True, config=config)
-        
-        assert manager.auth.config == config
-        assert manager.auth.base_url == "https://supplier.rstore.com/rest/"
-        assert not manager.auth.test
 
 
 class TestConfigIntegrationScenarios:
@@ -231,25 +174,20 @@ class TestConfigIntegrationScenarios:
         """Test typical e2e testing scenario with multiple environments."""
         # Production setup
         prod_config = Config.production()
-        prod_manager = TheRangeManager("user", "pass", config=prod_config)
+        prod_manager = TheRangeManager("user", "pass", prod_config)
         
         # UAT setup
         uat_config = Config.uat()
-        uat_manager = TheRangeManager("user", "pass", config=uat_config)
+        uat_manager = TheRangeManager("user", "pass", uat_config)
         
         # Custom staging setup
         staging_config = Config.custom("https://staging.therange.com/rest", "staging")
-        staging_manager = TheRangeManager("user", "pass", config=staging_config)
+        staging_manager = TheRangeManager("user", "pass", staging_config)
         
         # Verify different environments
         assert prod_manager.auth.base_url == "https://supplier.rstore.com/rest/"
         assert uat_manager.auth.base_url == "https://uatsupplier.rstore.com/rest/"
         assert staging_manager.auth.base_url == "https://staging.therange.com/rest/"
-        
-        # Verify test flags
-        assert not prod_manager.auth.test
-        assert uat_manager.auth.test
-        assert not staging_manager.auth.test
     
     def test_config_injection_dependency_pattern(self):
         """Test configuration as dependency injection pattern."""
@@ -264,7 +202,7 @@ class TestConfigIntegrationScenarios:
             else:
                 raise ValueError(f"Unknown environment: {env_name}")
             
-            return TheRangeManager("test_user", "test_pass", config=config)
+            return TheRangeManager("test_user", "test_pass", config)
         
         # Test factory function
         prod_manager = create_manager_for_environment("production")
@@ -280,8 +218,8 @@ class TestConfigIntegrationScenarios:
         v1_config = Config.custom("https://api.therange.com/v1/rest", "v1")
         v2_config = Config.custom("https://api.therange.com/v2/rest", "v2")
         
-        v1_manager = TheRangeManager("user", "pass", config=v1_config)
-        v2_manager = TheRangeManager("user", "pass", config=v2_config)
+        v1_manager = TheRangeManager("user", "pass", v1_config)
+        v2_manager = TheRangeManager("user", "pass", v2_config)
         
         assert v1_manager.auth.base_url == "https://api.therange.com/v1/rest/"
         assert v2_manager.auth.base_url == "https://api.therange.com/v2/rest/"
