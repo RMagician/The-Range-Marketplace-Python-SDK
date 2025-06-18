@@ -5,3 +5,6 @@ description = "Modular Python SDK for The Range Marketplace API"
 authors = [{name = "Your Name"}]
 dependencies = ["requests", "pydantic"]
 requires-python = ">=3.7"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
