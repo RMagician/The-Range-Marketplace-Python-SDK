@@ -1,16 +1,36 @@
 import requests
 from http.cookies import SimpleCookie
+from typing import Optional
+from .config import Config
 
 class AuthClient:
-    def __init__(self, username, password, test=False):
+    def __init__(self, username, password, test=False, config: Optional[Config] = None):
+        """
+        Initialize AuthClient.
+        
+        Args:
+            username: The username for authentication
+            password: The password for authentication
+            test: Legacy parameter for backward compatibility. If True, uses UAT environment.
+                  Ignored if config is provided.
+            config: Configuration object. If not provided, uses production or UAT based on test parameter.
+        """
         self.username = username
         self.password = password
-        self.test = test
+        
+        # Handle configuration with backward compatibility
+        if config is not None:
+            self.config = config
+            self.test = config.is_test_environment
+        else:
+            self.test = test
+            self.config = Config.uat() if test else Config.production()
+        
         self.session = requests.Session()
         self.mode = None
         self.supplier_id = None
         self.ksi = None
-        self.base_url = "https://uatsupplier.rstore.com/rest/" if test else "https://supplier.rstore.com/rest/"
+        self.base_url = self.config.base_url
 
     def authenticate(self):
         url = self.base_url + "authenticate.api"
