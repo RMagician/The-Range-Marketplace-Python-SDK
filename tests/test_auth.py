@@ -9,6 +9,7 @@ import pytest
 import requests
 from unittest.mock import Mock, patch
 from therange.auth import AuthClient
+from therange.config import Config
 
 
 class TestAuthClientInitialization:
@@ -16,11 +17,11 @@ class TestAuthClientInitialization:
     
     def test_init_default_production(self):
         """Test initialization with default production settings."""
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         
         assert auth.username == "test_user"
         assert auth.password == "test_pass"
-        assert auth.test is False
         assert auth.base_url == "https://supplier.rstore.com/rest/"
         assert isinstance(auth.session, requests.Session)
         assert auth.mode is None
@@ -29,11 +30,11 @@ class TestAuthClientInitialization:
     
     def test_init_test_mode(self):
         """Test initialization with test mode enabled."""
-        auth = AuthClient("test_user", "test_pass", test=True)
+        config = Config.uat()
+        auth = AuthClient("test_user", "test_pass", config)
         
         assert auth.username == "test_user"
         assert auth.password == "test_pass"
-        assert auth.test is True
         assert auth.base_url == "https://uatsupplier.rstore.com/rest/"
         assert isinstance(auth.session, requests.Session)
         assert auth.mode is None
@@ -64,7 +65,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass", test=True)
+        config = Config.uat()
+        auth = AuthClient("test_user", "test_pass", config)
         result = auth.authenticate()
         
         # Verify request was made correctly
@@ -96,7 +98,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("bad_user", "bad_pass")
+        config = Config.production()
+        auth = AuthClient("bad_user", "bad_pass", config)
         
         with pytest.raises(PermissionError, match="Unauthorized: Invalid credentials"):
             auth.authenticate()
@@ -115,7 +118,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         
         with pytest.raises(ValueError, match="Bad request: Invalid request format"):
             auth.authenticate()
@@ -135,7 +139,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         
         with pytest.raises(RuntimeError, match="Authentication failed: 'ksi' cookie missing"):
             auth.authenticate()
@@ -155,7 +160,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         
         with pytest.raises(RuntimeError, match="Authentication failed: 'ksi' cookie missing"):
             auth.authenticate()
@@ -174,7 +180,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         
         with pytest.raises(requests.exceptions.HTTPError):
             auth.authenticate()
@@ -199,7 +206,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         result = auth.authenticate()
         
         # Verify supplier_id is converted to string "None"
@@ -226,7 +234,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         result = auth.authenticate()
         
         # Verify supplier_id is converted to string
@@ -252,7 +261,8 @@ class TestAuthClientAuthentication:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         result = auth.authenticate()
         
         # Verify mode remains None
@@ -286,7 +296,8 @@ class TestAuthClientEdgeCases:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         result = auth.authenticate()
         
         # Verify ksi cookie was extracted correctly
@@ -310,7 +321,8 @@ class TestAuthClientEdgeCases:
         mock_session_class.return_value = mock_session
         
         # Test authentication
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         result = auth.authenticate()
         
         # Verify defaults are handled correctly
@@ -321,12 +333,12 @@ class TestAuthClientEdgeCases:
     
     def test_auth_client_state_persistence(self):
         """Test that AuthClient maintains state correctly after initialization."""
-        auth = AuthClient("user1", "pass1", test=True)
+        config = Config.uat()
+        auth = AuthClient("user1", "pass1", config)
         
         # Verify initial state
         assert auth.username == "user1"
         assert auth.password == "pass1"
-        assert auth.test is True
         
         # State should persist
         assert auth.session is not None
@@ -355,7 +367,8 @@ class TestAuthClientEdgeCases:
         mock_session_class.return_value = mock_session
         
         # Test multiple authentication calls
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         
         # First authentication
         result1 = auth.authenticate()

@@ -9,6 +9,7 @@ import pytest
 from unittest.mock import Mock, patch
 from pydantic import ValidationError
 from therange.auth import AuthClient
+from therange.config import Config
 from therange.stock_availability import StockAvailabilityClient, StockItem
 
 
@@ -57,7 +58,8 @@ class TestStockAvailabilityClientInitialization:
     
     def test_init_with_auth_client(self):
         """Test initialization with auth client."""
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         client = StockAvailabilityClient(auth)
         
         assert client.auth is auth
@@ -68,7 +70,8 @@ class TestStockAvailabilityClientUpdateStock:
     
     def setup_method(self):
         """Set up test fixtures before each test method."""
-        self.auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        self.auth = AuthClient("test_user", "test_pass", config)
         self.auth.session = Mock()
         self.auth.supplier_id = "12345"
         self.auth.mode = "test_mode"
@@ -271,7 +274,8 @@ class TestStockAvailabilityClientUpdateStock:
         mock_response.text = "OK"
         
         # Create new auth with supplier_id None but valid session
-        auth_no_supplier = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth_no_supplier = AuthClient("test_user", "test_pass", config)
         auth_no_supplier.session = Mock()
         auth_no_supplier.session.post.return_value = mock_response
         auth_no_supplier.supplier_id = None  # This should cause validation error
@@ -292,7 +296,8 @@ class TestStockAvailabilityClientEdgeCases:
     
     def test_update_stock_large_dataset(self):
         """Test update_stock with large dataset."""
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         auth.session = Mock()
         auth.supplier_id = "12345"
         auth.base_url = "https://test.example.com/rest/"
@@ -317,7 +322,8 @@ class TestStockAvailabilityClientEdgeCases:
     
     def test_update_stock_special_characters_in_code(self):
         """Test update_stock with special characters in product codes."""
-        auth = AuthClient("test_user", "test_pass")
+        config = Config.production()
+        auth = AuthClient("test_user", "test_pass", config)
         auth.session = Mock()
         auth.supplier_id = "12345"
         auth.base_url = "https://test.example.com/rest/"

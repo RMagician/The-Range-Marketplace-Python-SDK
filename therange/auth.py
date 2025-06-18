@@ -1,16 +1,26 @@
 import requests
 from http.cookies import SimpleCookie
+from .config import Config
 
 class AuthClient:
-    def __init__(self, username, password, test=False):
+    def __init__(self, username, password, config: Config):
+        """
+        Initialize AuthClient.
+        
+        Args:
+            username: The username for authentication
+            password: The password for authentication
+            config: Configuration object specifying the environment to use
+        """
         self.username = username
         self.password = password
-        self.test = test
+        self.config = config
+        
         self.session = requests.Session()
         self.mode = None
         self.supplier_id = None
         self.ksi = None
-        self.base_url = "https://uatsupplier.rstore.com/rest/" if test else "https://supplier.rstore.com/rest/"
+        self.base_url = self.config.base_url
 
     def authenticate(self):
         url = self.base_url + "authenticate.api"
