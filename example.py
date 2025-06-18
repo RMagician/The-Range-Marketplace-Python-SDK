@@ -8,9 +8,18 @@ from datetime import date
 api = TheRangeManager("your_username", "your_password", test=True)
 api.authenticate()
 
-# Example: Get orders
+# Example: Get orders (basic - all orders)
 orders = api.order_feed.get_orders()
 print("Orders:", orders)
+
+# Example: Get orders with filtering
+filtered_orders = api.order_feed.get_orders(
+    search="W000001",
+    type="new",
+    from_date="2025-06-01 00:00:00",
+    to_date="2025-06-15 23:59:59"
+)
+print("Filtered Orders:", filtered_orders["order_arr"])
 
 # Example: Submit a product (legacy method - still works)
 response = api.product_feed.submit_products([
